@@ -1,5 +1,6 @@
 'use client'
 import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { useEffect } from 'react';
 
 export default function Home() {
@@ -10,8 +11,8 @@ export default function Home() {
     const planeSize = 50;
 
     //textures
-    const loader = new THREE.TextureLoader();
-    const texture = loader.load('Prototype_Grid_Gray_09-256x256.png');
+    const textureLoader = new THREE.TextureLoader();
+    const texture = textureLoader.load('Prototype_Grid_Gray_09-256x256.png');
     texture.wrapS = THREE.RepeatWrapping;
     texture.wrapT = THREE.RepeatWrapping;
     texture.repeat.set(4, 4);
@@ -29,11 +30,24 @@ export default function Home() {
     renderer.setSize(window.innerWidth, window.innerHeight);
     document.body.appendChild(renderer.domElement);
 
+    const modelLoader = new GLTFLoader();
+
+    async function dsModle(): any {
+      //3ds model
+      const ds = await modelLoader.loadAsync('3ds-model/scene.gltf');
+      scene.add(ds.scene);
+
+      return ds;
+    }
+
+    var ds_model;
+    dsModle().then(result => { ds_model = result });
+
     // Cube
     const geometry = new THREE.BoxGeometry(1, 1, 1);
     const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
     const cube = new THREE.Mesh(geometry, material);
-    scene.add(cube);
+    //scene.add(cube);
 
     cube.position.y = 3;
 
@@ -60,10 +74,12 @@ export default function Home() {
     const dirLight = new THREE.DirectionalLight(0xffffff, 1.0);
     scene.add(dirLight);
 
-    camera.position.z = 5;
-
     // function to atomically render a frame based on a given scene and camera perspective
     function animate(time) {
+      if (ds_model) {
+        ds_model.scene.position.set(0, 4.5, 9)
+        ds_model.scene.rotation.y = time / verticalSpeed;
+      }
       cube.rotation.y = time / verticalSpeed;
       //cube.rotation.x = time / horizontalSpeed;
 
@@ -71,8 +87,8 @@ export default function Home() {
     }
 
     // This starts the actual loop to render the canvas
-    renderer.setAnimationLoop(animate);
 
+    renderer.setAnimationLoop(animate);
     return () => {
       renderer.setAnimationLoop(null);
       renderer.dispose();
