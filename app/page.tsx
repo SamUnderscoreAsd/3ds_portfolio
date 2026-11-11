@@ -34,7 +34,7 @@ export default function Home() {
 
     async function dsModle(): any {
       //3ds model
-      const ds = await modelLoader.loadAsync('3ds-model/scene.gltf');
+      const ds = await modelLoader.loadAsync('3ds-model/FIXED_3ds_model.gltf');
       scene.add(ds.scene);
 
       return ds;
@@ -77,7 +77,8 @@ export default function Home() {
     // function to atomically render a frame based on a given scene and camera perspective
     function animate(time) {
       if (ds_model) {
-        ds_model.scene.position.set(0, 4.5, 9)
+        ds_model.scene.position.set(0, 4.5, 9);
+        ds_model.scene.rotation.set(0, 1, 0);
         ds_model.scene.rotation.y = time / verticalSpeed;
       }
       cube.rotation.y = time / verticalSpeed;
