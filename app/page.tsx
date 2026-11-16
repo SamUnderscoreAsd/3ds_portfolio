@@ -2,6 +2,7 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { useEffect } from 'react';
+import overshoot from '../effects/overshoot'
 
 export default function Home() {
   useEffect(() => {
@@ -80,7 +81,10 @@ export default function Home() {
       if (ds_model) {
         ds_model.rotation.set(1, 0, 0);
         ds_model.position.set(0, 0, -0.1);
-        if (cube.rotation.y < 6) {
+        if (spinMode) {
+          cube.rotation.y = time / verticalSpeed;
+        }
+        else if (cube.rotation.y < 6) {
           cube.rotation.y = time / verticalSpeed;
         }
         else {
