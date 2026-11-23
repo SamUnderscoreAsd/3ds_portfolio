@@ -1,5 +1,5 @@
 'use client'
-import { animate, frame } from "motion";
+import { animate, frame, drag } from "motion";
 import { threeEffect } from "motion/three"
 import * as THREE from 'three';
 import { GLTF, GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
@@ -9,11 +9,22 @@ import LoadingScreen from "@/components/LoadingScreen";
 
 export default function Home() {
 
+  interface mouseCoords {
+    x: number,
+    y: number
+  }
+
   const [isLoaded, setIsLoaded] = useState(false); //Refers to point when all assets are fully loaded
   const [loadedMessage, setLoadedMessage] = useState(""); //Messages that are sent into loading screen
+  const [mousePos, setMousePos] = useState<mouseCoords>( { x: 0, y: 0 } )
+
+  function handleMouseMove(event : React.MouseEvent){
+    setMousePos({ x: ((event.clientX / window.innerWidth) * 2 - 1), y: ((event.clientY / window.innerHeight) * -2 + 1) })
+    console.log("mouse posx: " + mousePos.x + "\nmouse posy: " + mousePos.y)
+  }
 
   useEffect(() => {
-    const debugMode = true; // Shows additional visual information for debugging
+    const debugMode = false; // Shows additional visual information for debugging
     const spinMode = false; //Enables infite spin on the rotateDSCube function
     let started = false; //Refers to point when start animation is finished
     const planeSize = 50; //Size of plane
@@ -25,8 +36,14 @@ export default function Home() {
     camera.position.set(0, 5, 10);
     camera.lookAt(0, 0, 0);
 
+    // Get canvas from html
+    const canvas: THREE.OffscreenCanvas = document.getElementById("c");
+    if (!canvas) {
+      throw new Error("CANVAS NOT FOUND");
+    }
+
     // Renderer
-    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, canvas: canvas});
     renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
     renderer.setSize(window.innerWidth, window.innerHeight);
     document.body.appendChild(renderer.domElement);
@@ -126,13 +143,14 @@ export default function Home() {
         )
       }
     }
-
     frame.render(() => renderer.render(scene, camera), true);
   },[]);
 
   return (
     <>
       {!isLoaded ? <LoadingScreen id="LoadingScreen" loadMessage={loadedMessage} /> : null}
+      <canvas id="c" onMouseMove={handleMouseMove}>
+      </canvas>
     </>
   );
 }
