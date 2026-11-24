@@ -1,11 +1,13 @@
 'use client'
-import { animate, frame, drag } from "motion";
+import { animate, frame } from "motion";
 import { threeEffect } from "motion/three"
 import * as THREE from 'three';
 import { GLTF, GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { useEffect, useState } from 'react';
+import { config } from '../config/config'
 
-import LoadingScreen from "@/components/LoadingScreen";
+import LoadingScreen from "@/components/loadingScreen";
+import rotateDSCube from "@/animations/spinmode";
 
 export default function Home() {
 
@@ -24,14 +26,10 @@ export default function Home() {
   }
 
   useEffect(() => {
-    const debugMode = false; // Shows additional visual information for debugging
-    const spinMode = false; //Enables infite spin on the rotateDSCube function
-    let started = false; //Refers to point when start animation is finished
-    const planeSize = 50; //Size of plane
 
     // Gets scene and camera to use browser window size.
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x00ffff); //set background cyan (for some reason lmao)nerHeigh
+    scene.background = new THREE.Color(config.scene.color); //set background cyan (for some reason lmao)nerHeigh
     const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
     camera.position.set(0, 5, 10);
     camera.lookAt(0, 0, 0);
@@ -64,14 +62,13 @@ export default function Home() {
     // Once Loading is finished
     // Call startup animation, set loading to false, set started to true
     loadingManager.onLoad = function () {
-      rotateDSCube(cube);
+      rotateDSCube(cube, config.spinMode);
       setIsLoaded(true);
-      started = true;
     }
 
     //textures
     const textureLoader = new THREE.TextureLoader(loadingManager);
-    const texture = textureLoader.load('Prototype_Grid_Gray_09-256x256.png');
+    const texture = textureLoader.load(config.debugMode ? config.texture.debug : config.texture.actual);
     texture.wrapS = THREE.RepeatWrapping;
     texture.wrapT = THREE.RepeatWrapping;
     texture.repeat.set(4, 4);
@@ -86,7 +83,7 @@ export default function Home() {
 
     // Cube
     const geometry = new THREE.BoxGeometry(1, 1, 1);
-    const material = new THREE.MeshBasicMaterial({ color: 0x00ff00, transparent: true, opacity: debugMode ? .2 : 0 });
+    const material = new THREE.MeshBasicMaterial({ color: config.cube.color, transparent: config.cube.transparent, opacity: config.debugMode ? config.cube.opacity.debug : config.cube.opacity.actual });
     const cube = new THREE.Mesh(geometry, material);
     cube.position.set(0, 4.5, 9);
 
@@ -104,45 +101,24 @@ export default function Home() {
 
     //wireframe
     const edgeGeo = new THREE.EdgesGeometry(cube.geometry);
-    const mat = new THREE.LineBasicMaterial({ color: 0xFFFFFF, transparent: true, opacity: debugMode ? 1 : 0 });
+    const mat = new THREE.LineBasicMaterial({ color: config.wireframe.color, transparent: config.wireframe.transparent, opacity: config.debugMode ? config.wireframe.opacity.debug : config.wireframe.opacity.actual });
     const wireframe = new THREE.LineSegments(edgeGeo, mat);
     cube.add(wireframe);
 
     // Plane
-    const planeGeo = new THREE.PlaneGeometry(planeSize, planeSize);
-    const planeMat = new THREE.MeshPhongMaterial({
-      map: texture,
-      side: THREE.DoubleSide,
-    });
+    const planeGeo = new THREE.PlaneGeometry(config.plane.planeSize, config.plane.planeSize);
+    const planeMat = new THREE.MeshPhongMaterial({ map: texture, side: config.plane.material.side});
     const planeMesh = new THREE.Mesh(planeGeo, planeMat);
     planeMesh.rotation.x = Math.PI * -.5;
     scene.add(planeMesh);
 
     // Lighting
-    const ambient = new THREE.AmbientLight(0x404040, 1);
+    const ambient = new THREE.AmbientLight(config.light.ambientColor, 1);
     scene.add(ambient);
 
-    const dirLight = new THREE.DirectionalLight(0xffffff, 1.0);
+    const dirLight = new THREE.DirectionalLight(config.light.directLight, 1.0);
     scene.add(dirLight);
 
-    // Designed to accept the GLTF ds model's parent mesh which is a cube
-    // and then applies a rotation animation to it dependeing on the current mode
-    function rotateDSCube(ds : THREE.Mesh) {
-      if (spinMode) {
-        animate(
-          ds,
-          { rotateY: 360 },
-          { duration: 2, repeat: Infinity, ease: "linear" }
-        )
-      }
-      else {
-        animate(
-          ds,
-          { rotateY: 360 },
-          { duration: 5, repeat: 0, ease: "backOut" }
-        )
-      }
-    }
     frame.render(() => renderer.render(scene, camera), true);
   },[]);
 
