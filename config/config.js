@@ -2,7 +2,7 @@ import * as THREE from 'three'
 
 export const config = {
   debugMode: true,
-  spinMode: true,
+  spinMode: false,
 
   scene: {
     color: 0x00ffff,

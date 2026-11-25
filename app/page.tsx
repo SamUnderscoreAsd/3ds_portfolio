@@ -8,13 +8,10 @@ import { config } from '../config/config'
 
 import LoadingScreen from "@/components/loadingScreen";
 import rotateDSCube from "@/animations/spinmode";
+import DebugScreen from "@/components/debugScreen";
+import { mouseCoords } from "@/types";
 
 export default function Home() {
-
-  interface mouseCoords {
-    x: number,
-    y: number
-  }
 
   const [isLoaded, setIsLoaded] = useState(false); //Refers to point when all assets are fully loaded
   const [loadedMessage, setLoadedMessage] = useState(""); //Messages that are sent into loading screen
@@ -22,7 +19,7 @@ export default function Home() {
 
   function handleMouseMove(event : React.MouseEvent){
     setMousePos({ x: ((event.clientX / window.innerWidth) * 2 - 1), y: ((event.clientY / window.innerHeight) * -2 + 1) })
-    console.log("mouse posx: " + mousePos.x + "\nmouse posy: " + mousePos.y)
+    //console.log("mouse posx: " + mousePos.x + "\nmouse posy: " + mousePos.y)
   }
 
   useEffect(() => {
@@ -120,11 +117,12 @@ export default function Home() {
     scene.add(dirLight);
 
     frame.render(() => renderer.render(scene, camera), true);
-  },[]);
+  }, []);
 
   return (
     <>
-      {!isLoaded ? <LoadingScreen id="LoadingScreen" loadMessage={loadedMessage} /> : null}
+      {!isLoaded ? <LoadingScreen id="LoadingScreen" loadMessage={loadedMessage}/> : null}
+      {config.debugMode ? <DebugScreen isLoaded={isLoaded} mousePos={ mousePos }/> : null}
       <canvas id="c" onMouseMove={handleMouseMove}>
       </canvas>
     </>
